@@ -1,0 +1,25 @@
+#define buzzer 13
+int code[] = {1, 2, 3}; // array with 3 digit code to transmit
+int n = 0;
+int beeps = 0; // remember the number of beeps played for this digit
+unsigned long prevMillis = 0;
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  morse ();
+}
+
+void morse() {
+  if (n < 3) { // if not all digits are played
+    if (beeps < code[n]) { // if number of beeps is not equal to # digit, play a beep
+      if (millis() - prevMillis >= 200 ) { // if 200 ms passed
+        tone(buzzer, 500, 1000); // beep for 100 ms
+        prevMillis = millis(); // reset the timer
+        beeps++; // remember you played a beep
+      }
+    } 
+}
+}

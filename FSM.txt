@@ -1,0 +1,245 @@
+#include <SPI.h>      
+#include <MFRC522.h>  
+
+
+
+
+
+#define Keypad    0
+#define password  1
+#definelcd        2
+#define Buzzer    3
+#define relay     4
+#define End       5
+
+
+
+
+/////////////////////////////////////General Variables////////////////
+char Task = 0; 
+unsigned long currentMillis = millis();  /// tick timer 
+long password = 0 ;
+////////////////////////////////////////////////////////////
+
+/////////////////relay//////////////////////////////////
+
+
+#define SS_PIN 10       // that SS pin on the card? a #define is a macro.. a easy representation in english as to what you are up to.
+#define RST_PIN 9       // strictly not necessary, but tell it where and what.
+
+#define RELAY_PIN 3
+
+#define DEBUG true
+
+#define VALID_TAG1 "_43_7b_e2_9a"
+#define VALID_TAG2 "43 7B E2 9A"
+
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance. // you have now made a MRFC object.. this is your gateway to the device.
+/**
+ * this is global space. anything declared here can be accessed by the everything inside this file
+ * 
+ */
+
+/**
+ * @brief setup().. this code runs once at startup. put setup code in here.. -_-
+ */
+
+  int countdownTimer = 30
+
+
+
+///////////////////////////////////////////////////////
+
+//////////////////keypad////////////////
+
+char Keys[4][4] = { //[Rows] [Columns]
+{'D','#','0','*'},
+{'C','9','8','7'},
+{'B','6','5','4'},
+{'A','3','2','1'}};
+byte RP[4] = {6, 7, 8,9};
+byte CP[4] = {2, 3, 4,5};
+Keypad KP=Keypad(makeKeymap(Keys),RP,CP,4,4); // Object
+
+
+//////////////////////////////////////////////////////////
+
+
+//////////////////buzzer//////////////////////////////////
+
+int code[] = {1, 2, 3}; // array with 3 digit code to transmit
+int n = 0;
+int beeps = 0; // remember the number of beeps played for this digit
+unsigned long prevMillis = 0;
+
+////////////////////////////////////////////////////////////////
+
+
+///////////////relay////////////////////////////////////////
+
+#define VALID_TAG1 "_43_7b_e2_9a"
+#define VALID_TAG2 "43 7B E2 9A"
+
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance. // you have now made a MRFC object.. this is your gateway to the device.
+/**
+ * this is global space. anything declared here can be accessed by the everything inside this file
+ * 
+ */
+
+/**
+ * @brief setup().. this code runs once at startup. put setup code in here.. -_-
+ */
+
+  int countdownTimer = 30;
+
+
+/////////////////////////////////////////////////////////////
+
+void setup () {
+
+
+///////////////  ÕœÌœ «·„Œ«—Ã Ê«·„œ«Œ·
+
+
+
+
+
+}
+
+
+
+void loop () {
+
+
+
+  currentMillis = millis();
+
+ switch(Task){
+    case keypad :
+    
+     keypad_Task();
+if(keypad == *){
+     Task = PASSWORD;
+}
+
+
+    break;
+     
+
+      password_Task();
+if(password ==  0    ){            //////////////////// „ €Ì— ··»«”ÊÊ—œ ø
+     Task = buzzer;
+}
+
+else { switch(Task) }
+
+
+    break;
+
+
+    case buzzer:
+     buzzer_Task ();
+    Task = rellay ;
+    break;
+
+    case rellay:
+    rellay_Task ();
+    
+    Task = End;
+    break;
+
+    default:
+  
+    Task = keypad;
+    break;
+
+  }
+
+///////////////keypad//////////////////////////////
+
+void keypad_Task(){
+
+
+char x = KP.getKey();
+if (x){Serial.println(x);}
+
+}
+
+
+////////////////buzzer//////////////////////////
+
+void buzzer_Task(){
+
+ if (n < 3) { // if not all digits are played
+    if (beeps < code[n]) { // if number of beeps is not equal to # digit, play a beep
+      if (millis() - prevMillis >= 200 ) { // if 200 ms passed
+        tone(buzzer, 500, 1000); // beep for 100 ms
+        prevMillis = millis(); // reset the timer
+        beeps++; // remember you played a beep
+      }
+    } 
+}
+}
+
+
+/////////////////////relay///////////////////////////////
+
+
+void relay_task() {
+
+delay(1000); // chill for 1 second
+
+  String UID = "";
+  if(!mfrc522.PICC_IsNewCardPresent()){  // this is a convenience function. if you hover over the test, it will show you its return type. in this case a bool.... a true/false, yes/no 1/0
+                                          // this is a if(){}   as name implies. if( this is true){ do the stuff in here if condition is true} else {do the stuff in here if condition is false}   ... simple?
+    Serial.println("Mohammad!");
+    return;
+  }
+
+  if(!mfrc522.PICC_ReadCardSerial()){        // this actually reads the serial of the tag
+    Serial.println("get me a valid tag you muppet");
+    return;
+  }
+  #if DEBUG
+  mfrc522.PICC_DumpDetailsToSerial(&(mfrc522.uid)); // will spit all the info to the serial port
+  #endif
+  
+  
+  for(byte i = 0;i < mfrc522.uid.size; i++){
+    UID.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? "_0" : "_"));
+    UID.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  Serial.print("my ID is:");
+  Serial.println(UID);
+
+  if(UID == VALID_TAG1 || UID == VALID_TAG2){
+   
+    countdownTimer = 30;
+    digitalWrite(RELAY_PIN, LOW);
+    Serial.println("yay");
+    Serial.println(countdownTimer);
+  }
+
+  if(countdownTimer < 0){
+    digitalWrite(RELAY_PIN, HIGH);
+    countdownTimer = 30;
+  }
+
+  countdownTimer--;
+  Serial.print(countdownTimer);
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
